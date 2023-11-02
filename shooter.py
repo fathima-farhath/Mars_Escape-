@@ -21,10 +21,12 @@ GRAVITY = 0.75
 moving_left = False
 moving_right = False
 shoot =False
+bomb=False
+bomb_thrown=False
 
 # load images
 bullet_img=pygame.image.load('img/icons/bullet.png').convert_alpha()
-
+Bomb_img=pygame.image.load('img/icons/grenade.png').convert_alpha()
 
 #define colours
 BG = (144, 201, 120)
@@ -37,7 +39,7 @@ def draw_bg():
 
 
 class Soldier(pygame.sprite.Sprite):
-	def __init__(self, char_type, x, y, scale, speed,ammo):
+	def __init__(self, char_type, x, y, scale, speed,ammo,bombs):
 		pygame.sprite.Sprite.__init__(self)
 		self.alive = True
 		self.char_type = char_type
@@ -45,6 +47,7 @@ class Soldier(pygame.sprite.Sprite):
 		# no of bullets
 		self.ammo=ammo
 		self.start_ammo=ammo
+		self.bombs=bombs
 		self.shoot_cooldown=0
 		self.health=25
 		self.max_health=self.health
@@ -191,15 +194,26 @@ class Bullet(pygame.sprite.Sprite):
 				# print(enemy.health)
 				self.kill()
 
+class Bomb(pygame.sprite.Sprite):
+    def __init__(self,x,y,direction):
+        pygame.sprite.Sprite.__init__(self)
+        self.timer=100
+        self.vel_y=-11
+        self.speed=7
+        self.image=Bomb_img
+        self.rect=self.image.get_rect()
+        self.rect.center=(x,y)
+        self.direction=direction
+
 
 
 
 # creating sprite groups
 bullet_group=pygame.sprite.Group()
+bomb_group=pygame.sprite.Group()
 
-
-player = Soldier('player', 200, 200, 3, 5,20)
-enemy = Soldier('enemy', 400, 200, 3, 5,20)
+player = Soldier('player', 200, 200, 3, 5,20,5)
+enemy = Soldier('enemy', 400, 200, 3, 5,20,0)
 
 
 
@@ -216,7 +230,9 @@ while run:
 	
 	# update and draw groups
 	bullet_group.update()
+	bomb_group.update()
 	bullet_group.draw(screen)
+	bomb_group.draw(screen)
 
 
 	if player.alive:
@@ -224,6 +240,16 @@ while run:
 		if shoot:
 			player.shoot()
 			# enemy.shoot()
+		# to throw bomb
+		elif bomb and bomb_thrown==False and player.bombs>0:
+			bomb=Bomb(player.rect.centerx+(0.5*player.rect.size[0]*player.direction),\
+							player.rect.top,player.direction)
+			bomb_group.add(bomb)
+			player.bombs-=1
+			bomb_thrown=True
+			print(player.bombs)
+			
+
 		if player.in_air:
 			player.update_action(2)
 		elif moving_left or moving_right:
@@ -245,6 +271,8 @@ while run:
 				moving_right = True
 			if event.key == pygame.K_SPACE:
 				shoot = True
+			if event.key == pygame.K_b:
+				bomb = True
 			if event.key == pygame.K_UP and player.alive:
 				player.jump = True
 			if event.key == pygame.K_ESCAPE:
@@ -258,7 +286,9 @@ while run:
 				moving_right = False
 			if event.key == pygame.K_SPACE:
 				shoot = False
-
+			if event.key == pygame.K_b:
+				bomb = False
+				bomb_thrown=False
 
 
 
