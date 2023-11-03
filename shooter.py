@@ -16,6 +16,7 @@ FPS = 60
 
 #define game variables
 GRAVITY = 0.75
+TILE_SIZE=20
 
 #define player action variables
 moving_left = False
@@ -49,7 +50,7 @@ class Soldier(pygame.sprite.Sprite):
 		self.start_ammo=ammo
 		self.bombs=bombs
 		self.shoot_cooldown=0
-		self.health=25
+		self.health=50
 		self.max_health=self.health
 		self.direction = 1
 		self.vel_y = 0
@@ -227,8 +228,17 @@ class Bomb(pygame.sprite.Sprite):
         self.timer -= 1
         if self.timer <= 0:
             self.kill()
-            explosion = Explosion(self.rect.x, self.rect.y,0.5)  # Create an Explosion without the extra argument
+            explosion = Explosion(self.rect.x, self.rect.y, 0.5)  # Create an Explosion without the extra argument
             explosion_group.add(explosion)
+            # do damage to anyone around it
+        if abs(self.rect.centerx - player.rect.centerx) < TILE_SIZE * 2 and \
+                abs(self.rect.centery - player.rect.centery) < TILE_SIZE * 2:
+            player.health -= 50
+        for enemy in enemy_group:
+            if abs(self.rect.centerx - enemy.rect.centerx) < TILE_SIZE * 2 and \
+                    abs(self.rect.centery - enemy.rect.centery) < TILE_SIZE * 2:
+                enemy.health -= 50
+
 	
 			
 
@@ -263,11 +273,12 @@ class Explosion(pygame.sprite.Sprite):
 bullet_group=pygame.sprite.Group()
 bomb_group=pygame.sprite.Group()
 explosion_group=pygame.sprite.Group()
-
+enemy_group=pygame.sprite.Group()
 player = Soldier('player', 200, 200, 3, 5,20,5)
 enemy = Soldier('enemy', 400, 200, 3, 5,20,0)
-
-
+enemy2 = Soldier('enemy', 300, 300, 3, 5,20,0)
+enemy_group.add(enemy)
+enemy_group.add(enemy2)
 
 run = True
 while run:
@@ -277,8 +288,9 @@ while run:
 	player.update()
 	player.draw()
 
-	enemy.update()
-	enemy.draw()
+	for enemy in enemy_group:
+		enemy.update()
+		enemy.draw()
 	
 	# update and draw groups
 	bullet_group.update()
