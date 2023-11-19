@@ -8,7 +8,7 @@ pygame.init()
 
 
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = int(SCREEN_WIDTH * 0.8)
+SCREEN_HEIGHT = int(SCREEN_WIDTH * 0.6)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Shooter')
@@ -69,6 +69,9 @@ item_boxes = {
 	'Grenade'	: grenade_box_img
 }
 
+# load images
+bullet_img=pygame.image.load('img/icons/bullet.png').convert_alpha()
+Bomb_img=pygame.image.load('img/icons/grenade.png').convert_alpha()
 
 #define colours
 BG = (144, 201, 120)
@@ -164,6 +167,12 @@ class Soldier(pygame.sprite.Sprite):
 		#update cooldown
 		if self.shoot_cooldown > 0:
 			self.shoot_cooldown -= 1
+
+	def update(self):
+		self.update_animation()
+		self.check_alive()
+		if self.shoot_cooldown>0:
+			self.shoot_cooldown-=1
 
 
 	def move(self, moving_left, moving_right):
@@ -313,6 +322,7 @@ class Soldier(pygame.sprite.Sprite):
 				self.frame_index = 0
 
 
+	
 
 	def update_action(self, new_action):
 		#check if the new action is different to the previous one
@@ -322,7 +332,12 @@ class Soldier(pygame.sprite.Sprite):
 			self.frame_index = 0
 			self.update_time = pygame.time.get_ticks()
 
-
+	def check_alive(self):
+		if self.health<=0:
+			self.health=0
+			self.speed=0
+			self.alive=False
+			self.update_action(3)
 
 	def check_alive(self):
 		if self.health <= 0:
@@ -620,6 +635,16 @@ world = World()
 player, health_bar = world.process_data(world_data)
 
 
+# creating sprite groups
+bullet_group=pygame.sprite.Group()
+bomb_group=pygame.sprite.Group()
+explosion_group=pygame.sprite.Group()
+enemy_group=pygame.sprite.Group()
+player = Soldier('player', 200, 200, 3, 5,20,5)
+enemy = Soldier('enemy', 400, 200, 3, 5,20,0)
+enemy2 = Soldier('enemy', 300, 300, 3, 5,20,0)
+enemy_group.add(enemy)
+enemy_group.add(enemy2)
 
 run = True
 while run:
@@ -653,33 +678,44 @@ while run:
 		for x in range(player.grenades):
 			screen.blit(grenade_img, (135 + (x * 15), 60))
 
+	for enemy in enemy_group:
+		enemy.update()
+		enemy.draw()
+	
+	# update and draw groups
+	bullet_group.update()
+	bomb_group.update()
+	explosion_group.update()
+	bullet_group.draw(screen)
+	bomb_group.draw(screen)
+	explosion_group.draw(screen)
 
-		player.update()
-		player.draw()
+	player.update()
+	player.draw()
 
-		for enemy in enemy_group:
+	for enemy in enemy_group:
 			enemy.ai()
 			enemy.update()
 			enemy.draw()
 
 		#update and draw groups
-		bullet_group.update()
-		grenade_group.update()
-		explosion_group.update()
-		item_box_group.update()
-		decoration_group.update()
-		water_group.update()
-		exit_group.update()
-		bullet_group.draw(screen)
-		grenade_group.draw(screen)
-		explosion_group.draw(screen)
-		item_box_group.draw(screen)
-		decoration_group.draw(screen)
-		water_group.draw(screen)
-		exit_group.draw(screen)
+	bullet_group.update()
+	grenade_group.update()
+	explosion_group.update()
+	item_box_group.update()
+	decoration_group.update()
+	water_group.update()
+	exit_group.update()
+	bullet_group.draw(screen)
+	grenade_group.draw(screen)
+	explosion_group.draw(screen)
+	item_box_group.draw(screen)
+	decoration_group.draw(screen)
+	water_group.draw(screen)
+	exit_group.draw(screen)
 
 		#update player actions
-		if player.alive:
+	if player.alive:
 			#shoot bullets
 			if shoot:
 				player.shoot()
@@ -713,7 +749,7 @@ while run:
 								world_data[x][y] = int(tile)
 					world = World()
 					player, health_bar = world.process_data(world_data)	
-		else:
+	else:
 			screen_scroll = 0
 			if restart_button.draw(screen):
 				bg_scroll = 0
