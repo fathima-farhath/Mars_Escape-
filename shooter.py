@@ -3,7 +3,7 @@ import os
 import random
 import csv
 import button
-
+#orginal code
 pygame.init()
 
 
@@ -708,7 +708,7 @@ while run:
 					#load in level data and create world
 					with open(f'level{level}_data.csv', newline='') as csvfile:
 						reader = csv.reader(csvfile, delimiter=',')
-						for x, row in enumerate(reader):
+						for x, rṇow in enumerate(reader):
 							for y, tile in enumerate(row):
 								world_data[x][y] = int(tile)
 					world = World()
